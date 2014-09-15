@@ -68,13 +68,18 @@ bool HelloWorld::init()
     // make single-tap event
     touchObservableObservable
     .flat_map(rxu::apply_to([this, shared_player](Touch *t, CCRx::TouchEventObservable o) {
-        return o.as_dynamic().last().filter([](Touch* t) {
-            return t->getLocation().distance(t->getStartLocation()) < 10.f;
-        });
-    }), [](std::tuple<Touch*, CCRx::TouchEventObservable>, Touch* t) {
-        return t;
+        typedef std::chrono::duration<float> float_seconds;
+        auto beginTime = std::chrono::system_clock::now();
+        return o
+        .last()
+        .map([=](Touch *) { return std::chrono::duration_cast<float_seconds>(std::chrono::system_clock::now() - beginTime).count(); })
+        .filter([](float d) { return (d < 0.2); })
+        .as_dynamic();
+        
+    }), [](std::tuple<Touch*, CCRx::TouchEventObservable>, float d) {
+        return d;
     })
-    .subscribe([=](Touch *t) {
+    .subscribe([=](float d) {
         auto shot = RefPtr<Sprite>(Sprite::create("shot.png"));
         addChild(shot.get());
         
