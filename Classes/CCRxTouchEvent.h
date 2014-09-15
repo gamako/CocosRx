@@ -16,7 +16,7 @@ namespace CCRx {
 
     typedef rxcpp::observable<cocos2d::Touch*> TouchEventObservable;
 
-    rxcpp::observable<TouchEventObservable>  touchEventObservable(cocos2d::Node* targetNode,
+    rxcpp::observable<std::tuple<cocos2d::Touch*, TouchEventObservable>>  touchEventObservable(cocos2d::Node* targetNode,
                                                                   std::function<bool(cocos2d::Touch*)> isBegan = nullptr,
                                                                   bool isSwallow = false);
 }
