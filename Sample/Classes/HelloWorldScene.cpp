@@ -1,6 +1,7 @@
 #include "HelloWorldScene.h"
 #include "rxcpp/rx.hpp"
 #include <memory>
+#include <random>
 
 #include "CCRxTouchEvent.h"
 #include "CCRxScheduler.h"
@@ -48,59 +49,91 @@ bool HelloWorld::init()
 
     // move player sprite according to touch and move
     auto shared_player = RefPtr<Sprite>(player);
-    touchObservableObservable.subscribe(rxu::apply_to([this, shared_player](Touch *t, CCRx::TouchEventObservable o) {
+    touchObservableObservable.subscribe(rxu::apply_to([=](Touch *t, CCRx::TouchEventObservable o) {
         
         auto touchPointOrigin = this->getParent()->convertToNodeSpace(t->getLocation());
         auto playerOrigin = shared_player->getPosition();
 
         o.subscribe(
-                    [this, shared_player, touchPointOrigin, playerOrigin](Touch* t){
+                    [=](Touch* t){
 
                         auto touchPoint = this->getParent()->convertToNodeSpace(t->getLocation());
                         auto newPosition = playerOrigin + (touchPoint - touchPointOrigin);
-                        shared_player->setPosition(newPosition.x, playerOrigin.y);
+                        shared_player->setPosition(std::max(std::min(newPosition.x, visibleSize.width), 0.0f), playerOrigin.y);
 
                     },
                     [](std::exception_ptr){ CCLOG("error"); },
                     [](){ CCLOG("completed"); });
     }));
-
+    
     // make single-tap event
     touchObservableObservable
     .flat_map(rxu::apply_to([this, shared_player](Touch *t, CCRx::TouchEventObservable o) {
-        typedef std::chrono::duration<float> float_seconds;
-        auto beginTime = std::chrono::system_clock::now();
+        const auto beginTime = std::chrono::system_clock::now();
+
         return o
         .last()
-        .map([=](Touch *) { return std::chrono::duration_cast<float_seconds>(std::chrono::system_clock::now() - beginTime).count(); })
-        .filter([](float d) { return (d < 0.2); })
+        .map([](Touch *) { return std::chrono::system_clock::now(); })
+        .filter([=](std::chrono::system_clock::time_point time) {
+            return ((time - beginTime) < std::chrono::duration<float>(0.2));
+        })
         .as_dynamic();
         
-    }), [](std::tuple<Touch*, CCRx::TouchEventObservable>, float d) {
+    }), [](std::tuple<Touch*, CCRx::TouchEventObservable>, std::chrono::system_clock::time_point d) {
         return d;
     })
-    .subscribe([=](float d) {
+    .subscribe([=](std::chrono::system_clock::time_point) {
         auto shot = RefPtr<Sprite>(Sprite::create("shot.png"));
         addChild(shot.get());
         
         auto startPosition = shared_player->getPosition() + Vec2(0, 50);
         shot->setPosition(startPosition);
-        auto speed = Vec2{0, 1000};
-        auto startTime = std::chrono::system_clock::now();
+        const float speed = 1000;
+        auto vector = Vec2{0, 1} * speed;
         
         CCRx::interval(shot.get(), 0)
+        .scan(0.0f, [](float sum, float d) { return sum + d; })
         .as_dynamic()
-        .subscribe([=](float d) {
+        .subscribe([=](float delta) {
             typedef std::chrono::duration<float> float_seconds;
-            auto now = std::chrono::system_clock::now();
-            auto spendTime = std::chrono::duration_cast<float_seconds>(now - startTime).count();
             
-            shot->setPosition(startPosition + speed * spendTime);
+            shot->setPosition(startPosition + vector * delta);
             
             if (shot->getPosition().y > visibleSize.height) {
                 shot->removeFromParent();
             }
         });
+    });
+    
+    auto rnd = std::make_shared<std::mt19937>();
+    
+    CCRx::interval(this, 3)
+    .start_with(0)
+    .as_dynamic()
+    .subscribe([=](float) {
+        std::uniform_real_distribution<float> xDist(0.0 ,visibleSize.width);
+        const auto fromX = xDist(*rnd);
+        const auto toX = xDist(*rnd);
+        const auto startPosition = Vec2{fromX, visibleSize.height};
+        const float speed = 100.0;
+        const auto vector = (Vec2{toX, 0} - startPosition).getNormalized() * speed;
+
+        auto enemy = RefPtr<Sprite>(Sprite::create("enemy.png"));
+        addChild(enemy.get());
+        
+        enemy->setPosition(startPosition);
+
+        CCRx::interval(enemy.get(), 0)
+        .scan(0.0f, [](float sum, float b) { return sum + b; })
+        .as_dynamic()
+        .subscribe([=](float delta) {
+            enemy->setPosition(startPosition + vector * delta);
+            
+            if (enemy->getPosition().y < 0) {
+                enemy->removeFromParent();
+            }
+        });
+        
     });
     
     

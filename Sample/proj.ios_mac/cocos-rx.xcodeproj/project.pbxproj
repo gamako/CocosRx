@@ -47,6 +47,8 @@
 		8A313CE719C6565600755517 /* player.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A313CE519C6565600755517 /* player.png */; };
 		8A313CEC19C6962C00755517 /* shot.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A313CEB19C6962C00755517 /* shot.png */; };
 		8A313CED19C6962C00755517 /* shot.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A313CEB19C6962C00755517 /* shot.png */; };
+		8A313CEF19C78B5200755517 /* enemy.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A313CEE19C78B5200755517 /* enemy.png */; };
+		8A313CF019C78B5200755517 /* enemy.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A313CEE19C78B5200755517 /* enemy.png */; };
 		BF171245129291EC00B8313A /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF170DB012928DE900B8313A /* OpenGLES.framework */; };
 		BF1712471292920000B8313A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BF170DB412928DE900B8313A /* libz.dylib */; };
 		BF1C47F01293687400B63C5D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF1C47EA1293683800B63C5D /* QuartzCore.framework */; };
@@ -300,6 +302,7 @@
 		8A313CDE19C517BA00755517 /* rx-synchronize.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "rx-synchronize.hpp"; sourceTree = "<group>"; };
 		8A313CE519C6565600755517 /* player.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = player.png; sourceTree = "<group>"; };
 		8A313CEB19C6962C00755517 /* shot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = shot.png; sourceTree = "<group>"; };
+		8A313CEE19C78B5200755517 /* enemy.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = enemy.png; sourceTree = "<group>"; };
 		BF170DB012928DE900B8313A /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		BF170DB412928DE900B8313A /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		BF1C47EA1293683800B63C5D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -482,6 +485,7 @@
 		78C7DDAA14EBA5050085D0C2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				8A313CEE19C78B5200755517 /* enemy.png */,
 				8A313CE519C6565600755517 /* player.png */,
 				8A313CEB19C6962C00755517 /* shot.png */,
 			);
@@ -774,6 +778,7 @@
 			files = (
 				8A313CE619C6565600755517 /* player.png in Resources */,
 				8A313C8C19C5028D00755517 /* Default-568h@2x.png in Resources */,
+				8A313CEF19C78B5200755517 /* enemy.png in Resources */,
 				8A313CEC19C6962C00755517 /* shot.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -784,6 +789,7 @@
 			files = (
 				8A313CE719C6565600755517 /* player.png in Resources */,
 				503AE0F817EB97AB00D1A890 /* Icon.icns in Resources */,
+				8A313CF019C78B5200755517 /* enemy.png in Resources */,
 				8A313CED19C6962C00755517 /* shot.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
