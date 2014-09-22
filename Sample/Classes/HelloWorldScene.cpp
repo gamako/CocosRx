@@ -36,11 +36,49 @@ bool HelloWorld::init()
         return false;
     }
     
+    enum TagType : int {
+        Player = 0,
+        Shot,
+        Enemy,
+    };
+    
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
+    // Collision Detection Observable
+    typedef std::tuple<Node*, Node*> CollisionArg;
+    auto collosionObservable = rx::observable<>::scope([]() {
+        return rx::resource<rxsub::subject<CollisionArg>>(rxsub::subject<CollisionArg>());
+    }, [=](rx::resource<rxsub::subject<CollisionArg>> resource) {
+
+        auto subscriber = resource.get().get_subscriber();
+        
+        CCRx::interval(this, 0)
+        .as_dynamic()
+        .subscribe([=](float) {
+            Vector<Node*> children(this->getChildren());
+            
+            rx::observable<>::iterate(children).as_dynamic()
+            .subscribe([=](Node* child1) {
+                
+                bool isTrail = false;
+                rx::observable<>::iterate(children)
+                .filter([=, &isTrail](Node *n) { if (n == child1) { isTrail = true; } return !isTrail; })
+                .as_dynamic()
+                .subscribe([=](Node *child2) {
+                    if (child1->getBoundingBox().intersectsRect(child2->getBoundingBox())) {
+                        subscriber.on_next(std::make_tuple(child1, child2));
+                    }
+                });
+            });
+        });
+
+        return resource.get().get_observable();
+    }).as_dynamic();
+    
     // create sprites
     auto player = Sprite::create("player.png");
+    player->setTag(TagType::Player);
     addChild(player);
     player->setPosition(Vec2{visibleSize.width/2, 200});
     
@@ -84,6 +122,7 @@ bool HelloWorld::init()
     })
     .subscribe([=](std::chrono::system_clock::time_point) {
         auto shot = RefPtr<Sprite>(Sprite::create("shot.png"));
+        shot->setTag(TagType::Shot);
         addChild(shot.get());
         
         auto startPosition = shared_player->getPosition() + Vec2(0, 50);
@@ -95,11 +134,28 @@ bool HelloWorld::init()
         .scan(0.0f, [](float sum, float d) { return sum + d; })
         .as_dynamic()
         .subscribe([=](float delta) {
-            typedef std::chrono::duration<float> float_seconds;
-            
             shot->setPosition(startPosition + vector * delta);
             
             if (shot->getPosition().y > visibleSize.height) {
+                shot->removeFromParent();
+            }
+        });
+        
+        collosionObservable
+        .filter(rxu::apply_to([=](Node* a, Node*b) {
+            return (a == shot.get() || b == shot.get());
+        }))
+        .map(rxu::apply_to([=](Node* a, Node*b) {
+            if (a == shot.get()) {
+                return b;
+            } else {
+                return a;
+            }
+        }))
+        .filter([](Node *a) { return a->getParent() != nullptr; })
+        .subscribe([=](Node* a) {
+            if (a->getTag() == TagType::Enemy) {
+                a->removeFromParent();
                 shot->removeFromParent();
             }
         });
@@ -119,6 +175,7 @@ bool HelloWorld::init()
         const auto vector = (Vec2{toX, 0} - startPosition).getNormalized() * speed;
 
         auto enemy = RefPtr<Sprite>(Sprite::create("enemy.png"));
+        enemy->setTag(TagType::Enemy);
         addChild(enemy.get());
         
         enemy->setPosition(startPosition);
