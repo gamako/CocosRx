@@ -13,6 +13,36 @@ namespace rxsub=rxcpp::subjects;
 
 USING_NS_CC;
 
+template <typename PrimitiveType>
+class ObservableValue {
+    struct InnerValue {
+        PrimitiveType value;
+        rxsub::subject<PrimitiveType> subject;
+
+        explicit InnerValue(PrimitiveType initialValue) : value(initialValue), subject() {}
+    };
+    
+public:
+    std::shared_ptr<InnerValue> innerValue;
+    explicit ObservableValue(PrimitiveType initialValue) : innerValue(std::make_shared<InnerValue>(initialValue)) {}
+    ObservableValue(const ObservableValue& changeObservable) : innerValue(changeObservable.innerValue) {}
+    ObservableValue(ObservableValue&& changeObservable) : innerValue(std::move(changeObservable.innerValue)) {}
+
+    PrimitiveType getValue() const { return innerValue->value; }
+    
+    void setValue(PrimitiveType value) const {
+        const PrimitiveType& oldValue = innerValue->value;
+        if (oldValue != value) {
+            innerValue->value = value;
+            innerValue->subject.get_subscriber().on_next(value);
+        }
+    }
+    
+    rx::observable<PrimitiveType> get_observable() {
+        return innerValue->subject.get_observable();
+    }
+};
+
 Scene* HelloWorld::createScene()
 {
     // 'scene' is an autorelease object
@@ -45,6 +75,8 @@ bool HelloWorld::init()
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
+    ObservableValue<int> score(0);
+    
     // Collision Detection Observable
     typedef std::tuple<Node*, Node*> CollisionArg;
     auto collosionObservable = rx::observable<>::scope([]() {
@@ -157,6 +189,7 @@ bool HelloWorld::init()
             if (a->getTag() == TagType::Enemy) {
                 a->removeFromParent();
                 shot->removeFromParent();
+                score.setValue(score.getValue() + 100);
             }
         });
     });
@@ -193,21 +226,20 @@ bool HelloWorld::init()
         
     });
     
-    
-    /////////////////////////////
-    // 3. add your codes below...
 
-    // add a label shows "Hello World"
-    // create and initialize a label
-    
-    auto label = LabelTTF::create("Hello World", "Arial", 24);
-    
-    // position the label on the center of the screen
-    label->setPosition(Vec2(origin.x + visibleSize.width/2,
-                            origin.y + visibleSize.height - label->getContentSize().height));
+    // Score
+    auto scoreLabel = LabelTTF::create("0", "Arial", 24);
+    this->addChild(scoreLabel, 1);
 
-    // add the label as a child to this layer
-    this->addChild(label, 1);
+    score.get_observable()
+    .start_with(0)
+    .as_dynamic()
+    .subscribe([=](int newScore) {
+        scoreLabel->setString(cocos2d::StringUtils::format("Score: %4d", newScore));
+        scoreLabel->setPosition(Vec2(origin.x + visibleSize.width/2,
+                                     origin.y + visibleSize.height - scoreLabel->getContentSize().height));
+        
+    });
 
     return true;
 }
