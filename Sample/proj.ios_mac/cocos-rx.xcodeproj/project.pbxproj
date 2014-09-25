@@ -49,6 +49,7 @@
 		8A313CED19C6962C00755517 /* shot.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A313CEB19C6962C00755517 /* shot.png */; };
 		8A313CEF19C78B5200755517 /* enemy.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A313CEE19C78B5200755517 /* enemy.png */; };
 		8A313CF019C78B5200755517 /* enemy.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A313CEE19C78B5200755517 /* enemy.png */; };
+		8A622E8119D3CAEE00AD2971 /* TitleScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A622E7F19D3CAEE00AD2971 /* TitleScene.cpp */; };
 		BF171245129291EC00B8313A /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF170DB012928DE900B8313A /* OpenGLES.framework */; };
 		BF1712471292920000B8313A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BF170DB412928DE900B8313A /* libz.dylib */; };
 		BF1C47F01293687400B63C5D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF1C47EA1293683800B63C5D /* QuartzCore.framework */; };
@@ -303,6 +304,8 @@
 		8A313CE519C6565600755517 /* player.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = player.png; sourceTree = "<group>"; };
 		8A313CEB19C6962C00755517 /* shot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = shot.png; sourceTree = "<group>"; };
 		8A313CEE19C78B5200755517 /* enemy.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = enemy.png; sourceTree = "<group>"; };
+		8A622E7F19D3CAEE00AD2971 /* TitleScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TitleScene.cpp; path = ../Classes/TitleScene.cpp; sourceTree = "<group>"; };
+		8A622E8019D3CAEE00AD2971 /* TitleScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TitleScene.h; path = ../Classes/TitleScene.h; sourceTree = "<group>"; };
 		BF170DB012928DE900B8313A /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		BF170DB412928DE900B8313A /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		BF1C47EA1293683800B63C5D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -382,6 +385,8 @@
 			children = (
 				1AFAF8B316D35DE700DB1158 /* AppDelegate.cpp */,
 				1AFAF8B416D35DE700DB1158 /* AppDelegate.h */,
+				8A622E7F19D3CAEE00AD2971 /* TitleScene.cpp */,
+				8A622E8019D3CAEE00AD2971 /* TitleScene.h */,
 				1AFAF8B516D35DE700DB1158 /* HelloWorldScene.cpp */,
 				1AFAF8B616D35DE700DB1158 /* HelloWorldScene.h */,
 			);
@@ -808,6 +813,7 @@
 				503AE10117EB989F00D1A890 /* main.m in Sources */,
 				1AFAF8B816D35DE700DB1158 /* HelloWorldScene.cpp in Sources */,
 				8A313C9519C5178D00755517 /* CCRxScheduler.cpp in Sources */,
+				8A622E8119D3CAEE00AD2971 /* TitleScene.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
