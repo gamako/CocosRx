@@ -8,7 +8,7 @@
 
 #include "CCRxTouchEvent.h"
 #include "CCRxScheduler.h"
-#include "HelloWorldScene.h"
+#include "ShootingScene.h"
 
 namespace rx=rxcpp;
 namespace rxu=rxcpp::util;
@@ -57,7 +57,7 @@ bool TitleLayer::init() {
         return t;
     })
     .subscribe([=](Touch *t) {
-        auto scene = HelloWorld::createScene();
+        auto scene = ShootingScene::createScene();
         Director::getInstance()->pushScene(scene);
     });
     
