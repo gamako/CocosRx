@@ -155,7 +155,8 @@ bool ShootingScene::init()
         shot->setPosition(startPosition);
         const float speed = 1000;
         auto vector = Vec2{0, 1} * speed;
-        
+
+        auto shotCollisionDetectionSubscription = rx::composite_subscription();
         CCRx::interval(shot.get(), 0)
         .scan(0.0f, [](float sum, float d) { return sum + d; })
         .as_dynamic()
@@ -163,6 +164,7 @@ bool ShootingScene::init()
             shot->setPosition(startPosition + vector * delta);
             
             if (shot->getPosition().y > visibleSize.height) {
+                shotCollisionDetectionSubscription.unsubscribe();
                 shot->removeFromParent();
             }
         });
@@ -179,8 +181,9 @@ bool ShootingScene::init()
             }
         }))
         .filter([](Node *a) { return a->getParent() != nullptr; })
-        .subscribe([=](Node* a) {
+        .subscribe(shotCollisionDetectionSubscription, [=](Node* a) {
             if (a->getTag() == TagType::Enemy) {
+                shotCollisionDetectionSubscription.unsubscribe();
                 a->removeFromParent();
                 shot->removeFromParent();
                 score.setValue(score.getValue() + 100);
