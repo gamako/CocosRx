@@ -24,7 +24,7 @@ namespace CCRx {
             
             touchObservable_internal(Node* target) : subject(), target(target) {}
             touchObservable_internal(const touchObservable_internal& rhs) : subject(rhs.subject), target(rhs.target) {}
-            touchObservable_internal(const touchObservable_internal&& rhs) : subject(rhs.subject), target(rhs.target) {}
+            touchObservable_internal(const touchObservable_internal&& rhs) : subject(std::move(rhs.subject)), target(std::move(rhs.target)) {}
             touchObservable_internal(rxsub::subject<std::tuple<Touch*, TouchEventObservable>> subject, Node* target) : subject(std::move(subject)), target(target) {}
             
             ~touchObservable_internal() {
