@@ -99,8 +99,9 @@ bool ShootingScene::init()
         });
 
         return resource.get().get_observable();
-    }).as_dynamic();
-    
+    }).publish().as_dynamic();
+    collosionObservable.connect();
+ 
     // create sprites
     auto player = Sprite::create("player.png");
     player->setTag(TagType::Player);
