@@ -38,7 +38,8 @@ bool TitleLayer::init() {
     label->setPosition(Vec2(origin.x + visibleSize.width/2,
                             origin.y + visibleSize.height/4));
 
-    CCRx::interval(this, 1)
+    rx::composite_subscription cs;
+    auto subscription = CCRx::interval(this, 1, cs)
     .scan(false, [](bool b, float a) {
         return !b;
     })
@@ -57,10 +58,11 @@ bool TitleLayer::init() {
         return t;
     })
     .subscribe([=](Touch *t) {
+        subscription.unsubscribe();
         auto scene = ShootingScene::createScene();
         Director::getInstance()->pushScene(scene);
     });
-    
+
     
     return true;
 }

@@ -8,6 +8,7 @@
 
 #include "CCRxScheduler.h"
 #include <dispatch/dispatch.h>
+#include "CCRxUtil.hpp"
 
 namespace rx=rxcpp;
 namespace rxu=rxcpp::util;
@@ -128,50 +129,50 @@ namespace CCRx {
     }
     
     
-    static int counter = 0;
     
     namespace interval_detail {
         struct interval_internal {
-            int counter;
-            rxsub::subject<float> subject;
-            RefPtr<Node> target;
             
-            interval_internal(int counter, Node* target) : counter(counter), subject(), target(target) {}
-            interval_internal(const interval_internal& rhs) : counter(rhs.counter), subject(rhs.subject), target(rhs.target) {}
-            interval_internal(const interval_internal&& rhs) : counter(rhs.counter), subject(rhs.subject), target(rhs.target) {}
-            interval_internal(int counter, rxsub::subject<float> subject, Node* target) : counter(counter), subject(std::move(subject)), target(target) {}
+            interval_internal() {}
+            interval_internal(const interval_internal& rhs) {}
+            interval_internal(const interval_internal&& rhs) {}
             
             ~interval_internal() {
-                Director::getInstance()->getScheduler()->unschedule(event_key(), target);
             }
             
-            const std::string event_key() const {
-                return StringUtils::format("CCRx_interval_%d", counter);
-            }
-        private:
-            interval_internal() {}
         };
+        static int counter = 0;
+        int getCounter() {
+            return counter++;
+        }
+        const std::string event_key(int id) {
+            return StringUtils::format("CCRx_interval_%d", id);
+        }
     }
     
-    rx::observable<float> interval(Node* targetNode, float interval) {
-        typedef rx::resource<interval_detail::interval_internal> resource_type;
-        return rx::observable<>::scope(
-                                       [targetNode] () {
-                                           return resource_type(interval_detail::interval_internal(counter++, targetNode));
-                                       },
-                                       [interval] (resource_type r) {
+    rx::observable<float> interval(Node* targetNode, float interval, rx::composite_subscription cs /* = rx::composite_subscription() */) {
+        auto sharedTarget = RefPtr<Node>(targetNode);
+        
+        return rx::observable<>::defer(
+                                       [interval, sharedTarget, cs] () {
+                                           const int counter = interval_detail::getCounter();
+                                           auto subject = std::make_shared<rxsub::subject<float>>(cs);
+                                           cs.add([counter, sharedTarget]() {
+                                               Director::getInstance()->getScheduler()->unschedule(interval_detail::event_key(counter), sharedTarget);
+                                           });
                                            
-                                           auto subscriber = r.get().subject.get_subscriber();
-
+                                           auto finalizer = Util::shared_finallizer([cs]() {
+                                               cs.unsubscribe();
+                                           });
+                                           
+                                           auto subscriber = subject->get_subscriber();
                                            Director::getInstance()->getScheduler()->schedule(
-                                                                                             [subscriber, r](float delta) {
+                                                                                             [subscriber, finalizer](float delta) {
                                                                                                  subscriber.on_next(delta);
                                                                                              },
-                                                                                             r.get().target.get(),
-                                                                                             interval, kRepeatForever, 0.0, false, r.get().event_key());
-
-                                           
-                                           return r.get().subject.get_observable();
+                                                                                             sharedTarget,
+                                                                                             interval, kRepeatForever, 0.0, false, interval_detail::event_key(counter));
+                                           return subject->get_observable();
                                        }).as_dynamic();
     }
 }

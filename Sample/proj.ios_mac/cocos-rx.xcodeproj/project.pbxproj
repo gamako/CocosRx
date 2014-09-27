@@ -306,6 +306,7 @@
 		8A313CEE19C78B5200755517 /* enemy.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = enemy.png; sourceTree = "<group>"; };
 		8A622E7F19D3CAEE00AD2971 /* TitleScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TitleScene.cpp; path = ../Classes/TitleScene.cpp; sourceTree = "<group>"; };
 		8A622E8019D3CAEE00AD2971 /* TitleScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TitleScene.h; path = ../Classes/TitleScene.h; sourceTree = "<group>"; };
+		8A86FBDA19D6434F004BF893 /* CCRxUtil.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CCRxUtil.hpp; sourceTree = "<group>"; };
 		BF170DB012928DE900B8313A /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		BF170DB412928DE900B8313A /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		BF1C47EA1293683800B63C5D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -505,6 +506,7 @@
 				8A313C9219C5178D00755517 /* CCRxScheduler.h */,
 				8A313C9319C5178D00755517 /* CCRxTouchEvent.cpp */,
 				8A313C9419C5178D00755517 /* CCRxTouchEvent.h */,
+				8A86FBDA19D6434F004BF893 /* CCRxUtil.hpp */,
 			);
 			name = CCRx;
 			path = ../../Classes;
