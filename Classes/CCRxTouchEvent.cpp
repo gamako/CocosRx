@@ -7,6 +7,7 @@
 //
 
 #include "CCRxTouchEvent.h"
+#include "CCRxUtil.hpp"
 
 namespace rx=rxcpp;
 namespace rxu=rxcpp::util;
@@ -35,11 +36,11 @@ namespace CCRx {
         };
     }
     
-    rx::observable<std::tuple<Touch*, TouchEventObservable>> touchEventObservable(Node* targetNode, std::function<bool(Touch*)> isBegan /* = nullptr */, bool isSwallow /* = shallow */) {
+    rx::observable<std::tuple<Touch*, TouchEventObservable>> touchEventObservable(rxcpp::composite_subscription cs, Node* targetNode, std::function<bool(Touch*)> isBegan /* = nullptr */, bool isSwallow /* = shallow */) {
         typedef rx::resource<touchObservable_detail::touchObservable_internal> resource_type;
         return rx::observable<>::scope(
-                                       [targetNode] () {
-                                           return resource_type(touchObservable_detail::touchObservable_internal(targetNode));
+                                       [targetNode, cs] () {
+                                           return resource_type(touchObservable_detail::touchObservable_internal(targetNode), cs);
                                        },
                                        [isSwallow, isBegan] (resource_type r) {
                                            
@@ -50,8 +51,17 @@ namespace CCRx {
                                            if (isSwallow) {
                                                listener->setSwallowTouches(isSwallow);
                                            }
+
+                                           r.get_subscription().add([listener]() {
+                                               Director::getInstance()->getEventDispatcher()->removeEventListener(listener);
+                                           });
                                            
-                                           listener->onTouchBegan = [isBegan, listener, subscriber](Touch* t, Event*) -> bool {
+                                           auto cs = r.get_subscription();
+                                           auto finalizer = Util::shared_finallizer([cs]() {
+                                               cs.unsubscribe();
+                                           });
+
+                                           listener->onTouchBegan = [isBegan, listener, subscriber, finalizer](Touch* t, Event*) -> bool {
                                                if (isBegan) {
                                                    if (!isBegan(t)) {
                                                        return false;

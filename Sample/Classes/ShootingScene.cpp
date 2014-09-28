@@ -6,6 +6,8 @@
 #include "CCRxTouchEvent.h"
 #include "CCRxScheduler.h"
 
+#include "TitleScene.h"
+
 namespace rx=rxcpp;
 namespace rxu=rxcpp::util;
 namespace rxsc=rxcpp::schedulers;
@@ -129,6 +131,37 @@ bool ShootingScene::init()
                     [](std::exception_ptr){ CCLOG("error"); },
                     [](){ CCLOG("completed"); });
     }));
+
+    
+    collosionObservable
+    .filter(rxu::apply_to([=](Node* a, Node* b) {
+        return (a == shared_player.get() || b == shared_player.get());
+    }))
+    .map(rxu::apply_to([=](Node* a, Node* b) {
+        if (a == shared_player.get()) {
+            return b;
+        } else {
+            return a;
+        }
+    }))
+    .subscribe([=](Node* a) {
+        if (a->getTag() == TagType::Enemy) {
+            shared_player->removeFromParent();
+            
+            auto label = LabelTTF::create("Game Over", "Arial", 48);
+            this->addChild(label, 1);
+            label->setPosition(Vec2(origin.x + visibleSize.width/2,
+                                    origin.y + visibleSize.height/2));
+
+            
+            touchObservableObservable.subscribe(rxu::apply_to([=](Touch *t, CCRx::TouchEventObservable o) {
+                auto scene = TitleLayer::createScene();
+                Director::getInstance()->replaceScene(scene);
+                
+            }));
+
+        }
+    });
     
     // make single-tap event
     touchObservableObservable
@@ -170,10 +203,10 @@ bool ShootingScene::init()
         });
         
         collosionObservable
-        .filter(rxu::apply_to([=](Node* a, Node*b) {
+        .filter(rxu::apply_to([=](Node* a, Node* b) {
             return (a == shot.get() || b == shot.get());
         }))
-        .map(rxu::apply_to([=](Node* a, Node*b) {
+        .map(rxu::apply_to([=](Node* a, Node* b) {
             if (a == shot.get()) {
                 return b;
             } else {

@@ -60,7 +60,7 @@ bool TitleLayer::init() {
     .subscribe([=](Touch *t) {
         subscription.unsubscribe();
         auto scene = ShootingScene::createScene();
-        Director::getInstance()->pushScene(scene);
+        Director::getInstance()->replaceScene(scene);
     });
 
     
