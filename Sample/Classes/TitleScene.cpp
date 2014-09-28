@@ -38,8 +38,7 @@ bool TitleLayer::init() {
     label->setPosition(Vec2(origin.x + visibleSize.width/2,
                             origin.y + visibleSize.height/4));
 
-    rx::composite_subscription cs;
-    auto subscription = CCRx::interval(this, 1, cs)
+    auto subscription = CCRx::interval(this, 1)
     .scan(false, [](bool b, float a) {
         return !b;
     })

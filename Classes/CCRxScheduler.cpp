@@ -150,29 +150,33 @@ namespace CCRx {
         }
     }
     
-    rx::observable<float> interval(Node* targetNode, float interval, rx::composite_subscription cs /* = rx::composite_subscription() */) {
+    rx::observable<float> interval(Node* targetNode, float interval) {
         auto sharedTarget = RefPtr<Node>(targetNode);
         
         return rx::observable<>::defer(
-                                       [interval, sharedTarget, cs] () {
+                                       [interval, sharedTarget] () {
                                            const int counter = interval_detail::getCounter();
+
+                                           auto cs = rx::composite_subscription();
                                            auto subject = std::make_shared<rxsub::subject<float>>(cs);
-                                           cs.add([counter, sharedTarget]() {
-                                               Director::getInstance()->getScheduler()->unschedule(interval_detail::event_key(counter), sharedTarget);
-                                           });
-                                           
-                                           auto finalizer = Util::shared_finallizer([cs]() {
-                                               cs.unsubscribe();
-                                           });
-                                           
+
                                            auto subscriber = subject->get_subscriber();
+                                           auto finalizer = Util::shared_finallizer([subscriber, subject]() {
+                                               subscriber.on_completed();
+                                               
+                                           });
                                            Director::getInstance()->getScheduler()->schedule(
-                                                                                             [subscriber, finalizer](float delta) {
+                                                                                             [subscriber, finalizer, subject](float delta) {
                                                                                                  subscriber.on_next(delta);
                                                                                              },
                                                                                              sharedTarget,
                                                                                              interval, kRepeatForever, 0.0, false, interval_detail::event_key(counter));
-                                           return subject->get_observable();
+
+                                           return subject->get_observable()
+                                           .finally([=]() {
+                                               cs.unsubscribe();
+                                               Director::getInstance()->getScheduler()->unschedule(interval_detail::event_key(counter), sharedTarget);
+                                           }).as_dynamic();
                                        }).as_dynamic();
     }
 }

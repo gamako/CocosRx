@@ -16,13 +16,8 @@ namespace CCRx {
     namespace schedulers {
         rxcpp::schedulers::scheduler make_frame_update_scheduler(cocos2d::Node *node);
     }
-    rxcpp::observable<float> interval(cocos2d::Node* targetNode, float interval, rxcpp::composite_subscription cs);
 
-    inline rxcpp::observable<float> interval(cocos2d::Node* targetNode, float intervalTime) {
-        return interval(targetNode, intervalTime, rxcpp::composite_subscription());
-    }
-    
-
+    rxcpp::observable<float> interval(cocos2d::Node* targetNode, float interval);
 }
 
 #endif /* defined(__cocos_rx__CCRxScheduler__) */
