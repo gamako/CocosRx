@@ -74,7 +74,7 @@ bool ShootingScene::init()
     
     // Collision Detection Observable
     typedef std::tuple<Node*, Node*> CollisionArg;
-    auto collosionObservable = rx::observable<>::scope([]() {
+    auto collisionObservable = rx::observable<>::scope([]() {
         return rx::resource<rxsub::subject<CollisionArg>>(rxsub::subject<CollisionArg>());
     }, [=](rx::resource<rxsub::subject<CollisionArg>> resource) {
 
@@ -102,7 +102,7 @@ bool ShootingScene::init()
 
         return resource.get().get_observable();
     }).publish().as_dynamic();
-    collosionObservable.connect();
+    auto collision_subscription = collisionObservable.connect();
  
     // create sprites
     auto player = Sprite::create("player.png");
@@ -133,7 +133,7 @@ bool ShootingScene::init()
     }));
 
     
-    collosionObservable
+    collisionObservable
     .filter(rxu::apply_to([=](Node* a, Node* b) {
         return (a == shared_player.get() || b == shared_player.get());
     }))
@@ -157,7 +157,7 @@ bool ShootingScene::init()
             touchObservableObservable.subscribe(rxu::apply_to([=](Touch *t, CCRx::TouchEventObservable o) {
                 auto scene = TitleLayer::createScene();
                 Director::getInstance()->replaceScene(scene);
-                
+                collision_subscription.unsubscribe();
             }));
 
         }
@@ -202,7 +202,7 @@ bool ShootingScene::init()
             }
         });
         
-        collosionObservable
+        collisionObservable
         .filter(rxu::apply_to([=](Node* a, Node* b) {
             return (a == shot.get() || b == shot.get());
         }))

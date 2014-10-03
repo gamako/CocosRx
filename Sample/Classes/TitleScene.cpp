@@ -38,12 +38,13 @@ bool TitleLayer::init() {
     label->setPosition(Vec2(origin.x + visibleSize.width/2,
                             origin.y + visibleSize.height/4));
 
-    auto subscription = CCRx::interval(this, 1)
+    auto cs = rx::composite_subscription();
+    CCRx::interval(this, 1)
     .scan(false, [](bool b, float a) {
         return !b;
     })
     .as_dynamic()
-    .subscribe([=](bool b) {
+    .subscribe(cs, [=](bool b) {
         label->setVisible(b);
     });
     
@@ -56,12 +57,11 @@ bool TitleLayer::init() {
     }), [](std::tuple<Touch*, CCRx::TouchEventObservable>, Touch *t) {
         return t;
     })
-    .subscribe([=](Touch *t) {
-        subscription.unsubscribe();
+    .subscribe(cs, [=](Touch *t) {
+        cs.unsubscribe();
         auto scene = ShootingScene::createScene();
         Director::getInstance()->replaceScene(scene);
     });
-
     
     return true;
 }

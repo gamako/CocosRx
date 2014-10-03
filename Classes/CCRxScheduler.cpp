@@ -157,8 +157,7 @@ namespace CCRx {
                                        [interval, sharedTarget] () {
                                            const int counter = interval_detail::getCounter();
 
-                                           auto cs = rx::composite_subscription();
-                                           auto subject = std::make_shared<rxsub::subject<float>>(cs);
+                                           auto subject = std::make_shared<rxsub::subject<float>>();
 
                                            auto subscriber = subject->get_subscriber();
                                            auto finalizer = Util::shared_finallizer([subscriber, subject]() {
@@ -174,7 +173,7 @@ namespace CCRx {
 
                                            return subject->get_observable()
                                            .finally([=]() {
-                                               cs.unsubscribe();
+                                               subscriber.unsubscribe();
                                                Director::getInstance()->getScheduler()->unschedule(interval_detail::event_key(counter), sharedTarget);
                                            }).as_dynamic();
                                        }).as_dynamic();

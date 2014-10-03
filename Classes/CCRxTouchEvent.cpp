@@ -18,33 +18,13 @@ USING_NS_CC;
 
 namespace CCRx {
 
-    namespace touchObservable_detail {
-        struct touchObservable_internal {
-            rxsub::subject<std::tuple<Touch*, TouchEventObservable>> subject;
-            RefPtr<Node> target;
-            
-            touchObservable_internal(Node* target) : subject(), target(target) {}
-            touchObservable_internal(const touchObservable_internal& rhs) : subject(rhs.subject), target(rhs.target) {}
-            touchObservable_internal(const touchObservable_internal&& rhs) : subject(std::move(rhs.subject)), target(std::move(rhs.target)) {}
-            touchObservable_internal(rxsub::subject<std::tuple<Touch*, TouchEventObservable>> subject, Node* target) : subject(std::move(subject)), target(target) {}
-            
-            ~touchObservable_internal() {
-            }
-            
-        private:
-            touchObservable_internal() {}
-        };
-    }
-    
-    rx::observable<std::tuple<Touch*, TouchEventObservable>> touchEventObservable(rxcpp::composite_subscription cs, Node* targetNode, std::function<bool(Touch*)> isBegan /* = nullptr */, bool isSwallow /* = shallow */) {
-        typedef rx::resource<touchObservable_detail::touchObservable_internal> resource_type;
-        return rx::observable<>::scope(
-                                       [targetNode, cs] () {
-                                           return resource_type(touchObservable_detail::touchObservable_internal(targetNode), cs);
-                                       },
-                                       [isSwallow, isBegan] (resource_type r) {
-                                           
-                                           auto subscriber = r.get().subject.get_subscriber();
+    rx::observable<std::tuple<Touch*, TouchEventObservable>> touchEventObservable(Node* targetNode, std::function<bool(Touch*)> isBegan /* = nullptr */, bool isSwallow /* = shallow */) {
+
+        RefPtr<Node> sharedTarget(targetNode);
+        return rx::observable<>::defer(
+                                       [sharedTarget, isSwallow, isBegan] () {
+                                           auto subject = std::make_shared<rxsub::subject<std::tuple<Touch*, TouchEventObservable>>>();
+                                           auto subscriber = subject->get_subscriber();
                                            
                                            auto listener = RefPtr<EventListenerTouchOneByOne>{EventListenerTouchOneByOne::create()};
                                            
@@ -52,16 +32,11 @@ namespace CCRx {
                                                listener->setSwallowTouches(isSwallow);
                                            }
 
-                                           r.get_subscription().add([listener]() {
-                                               Director::getInstance()->getEventDispatcher()->removeEventListener(listener);
-                                           });
-                                           
-                                           auto cs = r.get_subscription();
-                                           auto finalizer = Util::shared_finallizer([cs]() {
-                                               cs.unsubscribe();
+                                           auto finalizer = Util::shared_finallizer([subject, subscriber]() {
+                                               subscriber.on_completed();
                                            });
 
-                                           listener->onTouchBegan = [isBegan, listener, subscriber, finalizer](Touch* t, Event*) -> bool {
+                                           listener->onTouchBegan = [isBegan, listener, subscriber, finalizer, subject](Touch* t, Event*) -> bool {
                                                if (isBegan) {
                                                    if (!isBegan(t)) {
                                                        return false;
@@ -87,9 +62,13 @@ namespace CCRx {
                                            };
                                            
                                            
-                                           Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, r.get().target);
+                                           Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, sharedTarget.get());
                                            
-                                           return r.get().subject.get_observable();
+                                           return subject->get_observable()
+                                           .finally([=]() {
+                                               subscriber.unsubscribe();
+                                               Director::getInstance()->getEventDispatcher()->removeEventListener(listener);
+                                           }).as_dynamic();
                                        }).as_dynamic();
 
     }
